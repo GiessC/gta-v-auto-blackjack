@@ -41,19 +41,20 @@ class Table(ImageFinder, PlayerObserver, PlayerHandObserver):
 
         for hand in self.player.hands:
             if hand.is_bust():
-                results.append(PlayerBustResult(hand.total, self.dealer_hand.total))
+                results.append(PlayerBustResult(hand.total, self.dealer_hand.total, hand.bet_amount))
             elif hand.total == self.dealer_hand.total:
-                results.append(PushResult(hand.total))
+                results.append(PushResult(hand.total, hand.bet_amount))
             elif hand.is_blackjack():
-                results.append(PlayerBlackjackResult(self.dealer_hand.total))
+                results.append(PlayerBlackjackResult(self.dealer_hand.total, hand.bet_amount))
             elif self.dealer_hand.is_blackjack():
-                results.append(DealerBlackjackResult(hand.total))
+                results.append(DealerBlackjackResult(hand.total, hand.bet_amount))
             elif self.dealer_hand.is_bust():
-                results.append(DealerBustResult(hand.total, self.dealer_hand.total))
+                results.append(DealerBustResult(hand.total, self.dealer_hand.total, hand.bet_amount))
             elif hand.total > self.dealer_hand.total:
-                results.append(WinResult(hand.total, self.dealer_hand.total))
+                results.append(WinResult(hand.total, self.dealer_hand.total, hand.bet_amount))
             else:
-                results.append(LossResult(hand.total, self.dealer_hand.total))
+                results.append(LossResult(hand.total, self.dealer_hand.total, hand.bet_amount))
+
         return results
 
     def get_dealer_upcard(self) -> Card | None:
@@ -103,7 +104,7 @@ class Table(ImageFinder, PlayerObserver, PlayerHandObserver):
         return loc is not None
 
     def poll_for_player_turn(self):
-        if self.settings.test:
+        if self.settings._simulate:
             self.simulate_dealing()
             return
         max_tries = 10
@@ -120,9 +121,9 @@ class Table(ImageFinder, PlayerObserver, PlayerHandObserver):
     def simulate_dealing(self):
         self.state = TableState.DEALING
         hand = PlayerHand(self.settings.bet_amount)
-        hand.add_card(CardFactory.create_two())
+        hand.add_card(CardFactory.create_ace())
         self.dealer_hand.add_card(CardFactory.create_ten())
-        hand.add_card(CardFactory.create_six())
+        hand.add_card(CardFactory.create_ten())
         self.player.hands.append(hand)
 
     def simulate_dealer_turn(self):
@@ -136,6 +137,11 @@ class Table(ImageFinder, PlayerObserver, PlayerHandObserver):
         else:
             print(f'Dealer total: {self.dealer_hand.total}. Dealer stands.')
         self.state = TableState.COMPLETE
+
+    def reset(self):
+        self.state = TableState.BETTING
+        self.player.reset()
+        self.dealer_hand.reset()
 
     def print_info(self):
         print()

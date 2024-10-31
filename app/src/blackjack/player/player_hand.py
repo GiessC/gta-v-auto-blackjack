@@ -101,6 +101,11 @@ class PlayerHand(Observable[PlayerHandObserver]):
         for observer in self.observers:
             observer.on_card_added(self, card)
 
+    def reset(self):
+        self.cards = []
+        self.total = 0
+        self.stood = False
+
     def __str__(self) -> str:
         string = ', '.join([str(card) for card in self.cards])
         return string + f'. Total: {self.total}'

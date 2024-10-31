@@ -1,7 +1,6 @@
 from abc import ABC
 from typing import List
 
-from analytics.counters.win_loss_counter import WinLossCounter
 from blackjack.card.card import Card
 from blackjack.player.player_hand import PlayerHand
 from blackjack.player.pub_sub.player_observer import PlayerObserver
@@ -13,19 +12,19 @@ from utils.pub_sub.observable import Observable
 class Player(ABC, Observable[PlayerObserver]):
     name: str = 'Player'
     hands: List[PlayerHand]
+    starting_chip_count: int
     chip_count: int
     strategy: Strategy
-    win_loss: WinLossCounter
 
     def __init__(self, strategy: Strategy, chip_count: int):
         super().__init__()
         self.hands = []
-        self.win_loss = WinLossCounter()
+        self.starting_chip_count: int = chip_count
         self.chip_count: int = chip_count
         self.strategy: Strategy = strategy
 
-    def add_hand(self, hand: PlayerHand):
-        hand.attach(self.win_loss)
+    def add_chips(self, amount: int):
+        self.chip_count += amount
 
     def play_hands(self, dealer_upcard: Card):
         reversed_hands = reversed(self.hands)
@@ -61,3 +60,6 @@ class Player(ABC, Observable[PlayerObserver]):
     def notify_hands_played(self):
         for observer in self.observers:
             observer.on_hands_played(self)
+
+    def reset(self):
+        self.hands = []
