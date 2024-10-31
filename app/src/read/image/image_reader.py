@@ -54,13 +54,20 @@ class ImageReader:
     def read_image(self, img_path: str):
         return cv2.imread(img_path)
 
-    def read_int_from_image(self, image: Image) -> int:
-        img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-        img = self.convert_image_to_grayscale(img)
-        img = self.add_dilation_and_erosion(img)
-        img = self.apply_thresholding(img)
+    def read_text_from_image(self, image: Image, char_whitelist=None) -> str:
+        if char_whitelist is None:
+            char_whitelist = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,.!0123456789'
+        image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        image = self.convert_image_to_grayscale(image)
+        image = self.add_dilation_and_erosion(image)
+        image = self.apply_thresholding(image)
 
-        text = pytesseract.image_to_string(img, lang='eng', config='--psm 6 -c tessedit_char_whitelist=0123456789')
+        text = pytesseract.image_to_string(image, lang='eng', config=f'--psm 6 -c tessedit_char_whitelist={char_whitelist}')
+
+        return text
+
+    def read_int_from_image(self, image: Image) -> int:
+        text = self.read_text_from_image(image, char_whitelist='0123456789')
 
         try:
             return int(text)

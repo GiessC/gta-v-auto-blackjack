@@ -16,11 +16,13 @@ from blackjack.player.player_hand import PlayerHand
 from blackjack.player.pub_sub.player_hand_observer import PlayerHandObserver
 from blackjack.player.pub_sub.player_observer import PlayerObserver
 from blackjack.settings.blackjack_settings import BlackjackSettings
+from blackjack.table.pub_sub.table_observer import TableObserver
 from blackjack.table.table_state import TableState
 from read.image.image_finder import ImageFinder
+from utils.pub_sub.observable import Observable
 
 
-class Table(ImageFinder, PlayerObserver, PlayerHandObserver):
+class Table(ImageFinder, PlayerObserver, PlayerHandObserver, Observable[TableObserver]):
     settings: BlackjackSettings
     state: TableState
     player: Player
@@ -142,6 +144,10 @@ class Table(ImageFinder, PlayerObserver, PlayerHandObserver):
         self.state = TableState.BETTING
         self.player.reset()
         self.dealer_hand.reset()
+
+    def notify_state_change(self, state: TableState):
+        for observer in self.observers:
+            observer.on_state_change(self, state)
 
     def print_info(self):
         print()

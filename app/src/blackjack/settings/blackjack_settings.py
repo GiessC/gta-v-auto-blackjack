@@ -2,7 +2,7 @@ from enum import Enum
 
 class ChipReadMethod(Enum):
     INPUT = "input"
-    __EXPERIMENTAL_OCR = "__experimental_ocr"
+    _EXPERIMENTAL_OCR = "__experimental_ocr"
 
 class BlackjackSettings:
     chip_read_method: ChipReadMethod
@@ -15,19 +15,20 @@ class BlackjackSettings:
 
     def __init__(
         self,
-        stop_at_loss_gte: int,
+        stop_at_loss_gte: int = 1_000_000,
         chip_read_method = ChipReadMethod.INPUT,
         bet_amount: int = 50_000,
         can_double: bool = True,
         can_double_after_split: bool = True,
         can_surrender: bool = False
     ):
-        self.stop_at_loss_greater_than = stop_at_loss_gte
+        self.stop_at_loss_gte = stop_at_loss_gte
         self.bet_amount = bet_amount
         self.can_double = can_double
         self.can_double_after_split = can_double_after_split
         self.can_surrender = can_surrender
         self.chip_read_method = chip_read_method
+        self._simulate = False
 
         self.validate()
 
